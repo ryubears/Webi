@@ -13,6 +13,11 @@ public class ChatMessage {
 
     public ChatMessage() {}
 
+    public ChatMessage(long timeStamp, String text) {
+        this.timeStamp = timeStamp;
+        this.text = text;
+    }
+
     public ChatMessage(long timeStamp, String userId, String name, String text, String profile) {
         this.timeStamp = timeStamp;
         this.userId = userId;

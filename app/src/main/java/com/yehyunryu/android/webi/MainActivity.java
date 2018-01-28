@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mCurrentUrlReference;
     private ChildEventListener mChildEventListener;
+    private DatabaseReference mCurrentUserReference;
+    private String mCurrentUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +91,8 @@ public class MainActivity extends AppCompatActivity {
             new ProfileTracker() {
                 @Override
                 protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                    displayProfilePicture(currentProfile);
+                    mProfile = currentProfile;
+                    displayProfilePicture(mProfile);
                 }
             };
             mProfile = Profile.getCurrentProfile();
@@ -154,6 +157,10 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {}
         };
 
+        mCurrentUserReference = mFirebaseDatabase.getReference().child("users").child(mAccessToken.getUserId());
+        User currentUser = new User(mProfile.getName(), mProfile.getProfilePictureUri(200,200).toString());
+        mCurrentUserReference.setValue(currentUser);
+
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -165,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                     String profileUrl = mProfile.getProfilePictureUri(200,200).toString();
                     ChatMessage chatMessage = new ChatMessage(currentTime, userId, name, text, profileUrl);
                     mCurrentUrlReference.push().setValue(chatMessage);
+                    mCurrentUserReference.child("history").child(mCurrentUrl).push().setValue(new ChatMessage(currentTime, text));
                 }
                 mChatEditText.setText("");
                 mChatEditText.clearFocus();
@@ -212,8 +220,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-                mChatAdapter.clear();
-                if(mCurrentUrlReference != null) mCurrentUrlReference.removeEventListener(mChildEventListener);
+
+                detachDatabase();
+
                 //hides keyboard after user searches
                 mUrlEditText.clearFocus();
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mUrlEditText.getWindowToken(), 0);
@@ -238,6 +247,22 @@ public class MainActivity extends AppCompatActivity {
                 .into(mProfileButton);
     }
 
+    private void attachDatabase() {
+        mCurrentUrl = mWebView.getUrl();
+        if(mCurrentUrl.charAt(mCurrentUrl.length() - 1) == '/') mCurrentUrl = mCurrentUrl.substring(0, mCurrentUrl.length() - 1);
+        mCurrentUrl = mCurrentUrl.replace("https://", "");
+        mCurrentUrl = mCurrentUrl.replace("http://", "");
+        mCurrentUrl = mCurrentUrl.replace(".", "_");
+        mCurrentUrl = mCurrentUrl.replace("/", "`");
+        mCurrentUrlReference = mFirebaseDatabase.getReference().child("urls").child(mCurrentUrl);
+        mCurrentUrlReference.addChildEventListener(mChildEventListener);
+    }
+
+    private void detachDatabase() {
+        mChatAdapter.clear();
+        if(mCurrentUrlReference != null) mCurrentUrlReference.removeEventListener(mChildEventListener);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         //return to previous webpage if available
@@ -246,6 +271,12 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onPause() {
+        detachDatabase();
+        super.onPause();
     }
 
     private class MyWebViewClient extends WebViewClient {
@@ -259,14 +290,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             mPreferencesEditor.putString(SAVED_URL_KEY, view.getUrl()).apply();
-            String webUrl = mWebView.getUrl();
-            if(webUrl.charAt(webUrl.length() - 1) == '/') webUrl = webUrl.substring(0, webUrl.length() - 1);
-            webUrl = webUrl.replace("https://", "");
-            webUrl = webUrl.replace("http://", "");
-            webUrl = webUrl.replace(".", "_");
-            webUrl = webUrl.replace("/", "`");
-            mCurrentUrlReference = mFirebaseDatabase.getReference().child("urls").child(webUrl);
-            mCurrentUrlReference.addChildEventListener(mChildEventListener);
+            attachDatabase();
             super.onPageFinished(view, url);
         }
     }
