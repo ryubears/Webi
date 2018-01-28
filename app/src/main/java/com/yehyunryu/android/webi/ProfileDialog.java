@@ -3,6 +3,7 @@ package com.yehyunryu.android.webi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.view.View;
 import android.view.Window;
@@ -26,7 +27,7 @@ public class ProfileDialog {
     private TextView mLogOutTextView;
     private TextView mCloseTextView;
 
-    public void showDialog(final Activity activity, Profile profile, final LoginManager loginManager, final FirebaseAuth firebaseAuth) {
+    public void showDialog(final Activity activity, Profile profile, final LoginManager loginManager, final FirebaseAuth firebaseAuth, final SharedPreferences.Editor sharedPreferencesEditor) {
         final Dialog dialog = new Dialog(activity);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
@@ -51,6 +52,7 @@ public class ProfileDialog {
             public void onClick(View view) {
                 dialog.dismiss();
                 activity.finish();
+                sharedPreferencesEditor.putString(MainActivity.SAVED_URL_KEY, "https://google.com/").apply();
                 firebaseAuth.signOut();
                 loginManager.logOut();
             }

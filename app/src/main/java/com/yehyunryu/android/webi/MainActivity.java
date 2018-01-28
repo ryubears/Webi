@@ -42,13 +42,14 @@ import com.squareup.picasso.Transformation;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String SAVED_URL_KEY = "saved_url_key";
+    public static final String SAVED_URL_KEY = "saved_url_key";
 
     private DrawerLayout mDrawerLayout;
     private ImageButton mProfileButton;
     private EditText mUrlEditText;
     private ImageButton mChatButton;
     private WebView mWebView;
+    private ImageButton mReportButton;
     private RecyclerView mChatRecyclerView;
     private EditText mChatEditText;
     private ImageButton mSendButton;
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         mUrlEditText = (EditText) findViewById(R.id.main_url_edittext);
         mChatButton = (ImageButton) findViewById(R.id.main_chat_button);
         mWebView = (WebView) findViewById(R.id.main_webview);
+        mReportButton = (ImageButton) findViewById(R.id.main_chat_report_button);
         mChatRecyclerView = (RecyclerView) findViewById(R.id.main_chat_recyclerview);
         mChatEditText = (EditText) findViewById(R.id.main_chat_edittext);
         mSendButton = (ImageButton) findViewById(R.id.main_send_button);
@@ -179,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 ProfileDialog dialog = new ProfileDialog();
-                dialog.showDialog(MainActivity.this, mProfile, mLoginManager, mFirebaseAuth);
+                dialog.showDialog(MainActivity.this, mProfile, mLoginManager, mFirebaseAuth, mPreferencesEditor);
             }
         });
 
