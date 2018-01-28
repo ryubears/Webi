@@ -71,7 +71,11 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         private void bind(int position) {
             ChatMessage chatMessage = mMessages.get(position);
             String profileUrl = chatMessage.getProfile();
-            if(profileUrl != null) displayProfilePicture(chatMessage.getProfile());
+            if(profileUrl != null) {
+                displayProfilePicture(chatMessage.getProfile());
+            } else {
+                mProfileImageView.setImageResource(R.drawable.user_black);
+            }
             mMessageTextView.setText(chatMessage.getText());
         }
 

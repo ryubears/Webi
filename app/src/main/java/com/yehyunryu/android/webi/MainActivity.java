@@ -18,6 +18,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
@@ -27,6 +28,8 @@ import android.widget.TextView;
 import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
+import com.facebook.login.LoginManager;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -56,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private Profile mProfile;
     private ActionBarDrawerToggle mDrawerToggle;
     private ChatAdapter mChatAdapter;
+    private LoginManager mLoginManager;
+    private FirebaseAuth mFirebaseAuth;
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mCurrentUrlReference;
     private ChildEventListener mChildEventListener;
@@ -92,7 +97,11 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
                     mProfile = currentProfile;
-                    displayProfilePicture(mProfile);
+                    if(mProfile != null) {
+                        displayProfilePicture(mProfile);
+                    } else {
+                        mProfileButton.setImageResource(R.drawable.user_black);
+                    }
                 }
             };
             mProfile = Profile.getCurrentProfile();
@@ -124,7 +133,10 @@ public class MainActivity extends AppCompatActivity {
 
         //handle web intents using the webview
         mWebView.setWebViewClient(new MyWebViewClient());
-        mWebView.getSettings().setJavaScriptEnabled(true);
+        WebSettings webSettings = mWebView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setAppCacheEnabled(false);
 
         //load webview
         String url = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(SAVED_URL_KEY, "https://google.com/");
@@ -136,6 +148,8 @@ public class MainActivity extends AppCompatActivity {
         mChatRecyclerView.setAdapter(mChatAdapter);
         mChatRecyclerView.setLayoutManager(layoutManager);
 
+        mLoginManager = LoginManager.getInstance();
+        mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mChildEventListener = new ChildEventListener() {
             @Override
@@ -160,6 +174,14 @@ public class MainActivity extends AppCompatActivity {
         mCurrentUserReference = mFirebaseDatabase.getReference().child("users").child(mAccessToken.getUserId());
         mCurrentUserReference.child("name").setValue(mProfile.getName());
         mCurrentUserReference.child("profileUrl").setValue(mProfile.getProfilePictureUri(200,200).toString());
+
+        mProfileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ProfileDialog dialog = new ProfileDialog();
+                dialog.showDialog(MainActivity.this, mProfile, mLoginManager, mFirebaseAuth);
+            }
+        });
 
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override

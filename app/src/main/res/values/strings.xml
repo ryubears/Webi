@@ -6,4 +6,6 @@
 
     <string name="chat_drawer_open">Open chat drawer</string>
     <string name="chat_drawer_close">Close chat drawer</string>
+
+    <string name="logout">Log Out</string>
 </resources>
