@@ -3,9 +3,15 @@ package com.yehyunryu.android.webi;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -17,15 +23,29 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.facebook.AccessToken;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
+import com.makeramen.roundedimageview.RoundedTransformationBuilder;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
+
 public class MainActivity extends AppCompatActivity {
     private static final String SAVED_URL_KEY = "saved_url_key";
 
-    private WebView mWebView;
-    private EditText mUrlEditText;
+    private DrawerLayout mDrawerLayout;
     private ImageButton mProfileButton;
+    private EditText mUrlEditText;
     private ImageButton mChatButton;
+    private WebView mWebView;
+    private RecyclerView mChatRecyclerView;
+    private EditText mChatEditText;
+    private ImageButton mSendButton;
+
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mPreferencesEditor;
+    private AccessToken mAccessToken;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +59,36 @@ public class MainActivity extends AppCompatActivity {
         setProgressBarIndeterminateVisibility(true);
         setProgressBarVisibility(true);
 
-        mWebView = (WebView) findViewById(R.id.main_webview);
-        mUrlEditText = (EditText) findViewById(R.id.main_url_edittext);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.main_drawer_layout);
         mProfileButton = (ImageButton) findViewById(R.id.main_profile_button);
+        mUrlEditText = (EditText) findViewById(R.id.main_url_edittext);
         mChatButton = (ImageButton) findViewById(R.id.main_chat_button);
+        mWebView = (WebView) findViewById(R.id.main_webview);
+        mChatRecyclerView = (RecyclerView) findViewById(R.id.main_chat_recyclerview);
+        mSendButton = (ImageButton) findViewById(R.id.main_send_button);
 
         mSharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
         mPreferencesEditor = mSharedPreferences.edit();
+
+        mAccessToken = AccessToken.getCurrentAccessToken();
+        if(mAccessToken != null) {
+            new ProfileTracker() {
+                @Override
+                protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
+                    displayProfilePicture(currentProfile);
+                }
+            };
+            Profile profile = Profile.getCurrentProfile();
+            if(profile != null) {
+                displayProfilePicture(profile);
+            } else {
+                Profile.fetchProfileForCurrentAccessToken();
+            }
+        }
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.string.chat_drawer_open, R.string.chat_drawer_close);
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         //moves focus from edittext to webview
         mWebView.requestFocus();
@@ -105,6 +148,30 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        mChatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
+                    mDrawerLayout.closeDrawer(GravityCompat.END);
+                } else {
+                    mDrawerLayout.openDrawer(GravityCompat.END);
+                }
+            }
+        });
+    }
+
+    private void displayProfilePicture(Profile profile) {
+        Uri profileUri = profile.getProfilePictureUri(80,80);
+        Transformation profilePicTransformation = new RoundedTransformationBuilder()
+                .cornerRadius(40)
+                .oval(false)
+                .build();
+
+        Picasso.with(this)
+                .load(profileUri)
+                .transform(profilePicTransformation)
+                .into(mProfileButton);
     }
 
     @Override

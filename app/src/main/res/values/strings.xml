@@ -3,4 +3,7 @@
 
     <string name="facebook_app_id">1981623202050261</string>
     <string name="fb_login_protocol_scheme">fb1981623202050261</string>
+
+    <string name="chat_drawer_open">Open chat drawer</string>
+    <string name="chat_drawer_close">Close chat drawer</string>
 </resources>
