@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private Profile mProfile;
     private ActionBarDrawerToggle mDrawerToggle;
     private ChatAdapter mChatAdapter;
+    private LinearLayoutManager mChatLayoutManager;
     private LoginManager mLoginManager;
     private FirebaseAuth mFirebaseAuth;
     private FirebaseDatabase mFirebaseDatabase;
@@ -145,33 +146,14 @@ public class MainActivity extends AppCompatActivity {
         mWebView.loadUrl(url);
 
         mChatAdapter = new ChatAdapter(this, new ArrayList<ChatMessage>());
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        layoutManager.setStackFromEnd(true);
+         mChatLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        mChatLayoutManager.setStackFromEnd(true);
         mChatRecyclerView.setAdapter(mChatAdapter);
-        mChatRecyclerView.setLayoutManager(layoutManager);
+        mChatRecyclerView.setLayoutManager(mChatLayoutManager);
 
         mLoginManager = LoginManager.getInstance();
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
-        mChildEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                ChatMessage chatMessage = dataSnapshot.getValue(ChatMessage.class);
-                mChatAdapter.add(chatMessage);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {}
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {}
-        };
 
         mCurrentUserReference = mFirebaseDatabase.getReference().child("users").child(mAccessToken.getUserId());
         mCurrentUserReference.child("name").setValue(mProfile.getName());
@@ -201,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
                 mChatEditText.setText("");
                 mChatEditText.clearFocus();
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mChatEditText.getWindowToken(), 0);
+                mChatLayoutManager.scrollToPosition(0);
                 mChatRecyclerView.requestFocus();
             }
         });
@@ -269,6 +252,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void attachDatabase() {
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                ChatMessage chatMessage = dataSnapshot.getValue(ChatMessage.class);
+                mChatAdapter.add(chatMessage);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        };
         mCurrentUrl = mWebView.getUrl();
         if(mCurrentUrl.charAt(mCurrentUrl.length() - 1) == '/') mCurrentUrl = mCurrentUrl.substring(0, mCurrentUrl.length() - 1);
         mCurrentUrl = mCurrentUrl.replace("https://", "");
@@ -281,7 +283,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void detachDatabase() {
         mChatAdapter.clear();
-        if(mCurrentUrlReference != null) mCurrentUrlReference.removeEventListener(mChildEventListener);
+        if(mCurrentUrlReference != null) {
+            if(mChildEventListener != null) mCurrentUrlReference.removeEventListener(mChildEventListener);
+            mChildEventListener = null;
+        }
     }
 
     @Override
@@ -292,6 +297,12 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onResume() {
+        if(mChildEventListener == null) attachDatabase();
+        super.onResume();
     }
 
     @Override
