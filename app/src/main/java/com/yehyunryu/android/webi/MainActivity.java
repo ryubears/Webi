@@ -9,6 +9,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.KeyEvent;
 import android.view.View;
@@ -30,6 +31,8 @@ import com.makeramen.roundedimageview.RoundedTransformationBuilder;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
     private static final String SAVED_URL_KEY = "saved_url_key";
 
@@ -46,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences.Editor mPreferencesEditor;
     private AccessToken mAccessToken;
     private ActionBarDrawerToggle mDrawerToggle;
+    private ChatAdapter mChatAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,6 +163,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+        ArrayList<ChatMessage> chatMessages = new ArrayList<>();
+        chatMessages.add(new ChatMessage(0, 0, null, "Random stuff", null));
+        chatMessages.add(new ChatMessage(0, 0, null, "lol", null));
+        chatMessages.add(new ChatMessage(0, 0, null, "once upon a time in a galaxy far far away", null));
+        mChatAdapter = new ChatAdapter(this, chatMessages);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        layoutManager.setStackFromEnd(true);
+        mChatRecyclerView.setAdapter(mChatAdapter);
+        mChatRecyclerView.setLayoutManager(layoutManager);
     }
 
     private void displayProfilePicture(Profile profile) {
