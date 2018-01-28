@@ -158,8 +158,8 @@ public class MainActivity extends AppCompatActivity {
         };
 
         mCurrentUserReference = mFirebaseDatabase.getReference().child("users").child(mAccessToken.getUserId());
-        User currentUser = new User(mProfile.getName(), mProfile.getProfilePictureUri(200,200).toString());
-        mCurrentUserReference.setValue(currentUser);
+        mCurrentUserReference.child("name").setValue(mProfile.getName());
+        mCurrentUserReference.child("profileUrl").setValue(mProfile.getProfilePictureUri(200,200).toString());
 
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
