@@ -44,6 +44,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     public void clear() {
         mMessages.clear();
+        notifyDataSetChanged();
     }
 
     public void add(ChatMessage chatMessage) {

@@ -220,9 +220,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
-
-                detachDatabase();
-
                 //hides keyboard after user searches
                 mUrlEditText.clearFocus();
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mUrlEditText.getWindowToken(), 0);
@@ -284,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             //update url edittext
             mUrlEditText.setText(url);
+            detachDatabase();
             super.onPageStarted(view, url, favicon);
         }
 
