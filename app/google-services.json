@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "846826250516",
+    "firebase_url": "https://webi-96ddb.firebaseio.com",
+    "project_id": "webi-96ddb",
+    "storage_bucket": "webi-96ddb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:846826250516:android:65b9e4d9e02e5af2",
+        "android_client_info": {
+          "package_name": "com.yehyunryu.android.webi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "846826250516-1h2mr9t91pt2658n2803be5o51ekhotn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yehyunryu.android.webi",
+            "certificate_hash": "34ac65c22a41e344346775bd7051d132f7dee213"
+          }
+        },
+        {
+          "client_id": "846826250516-c7pvu8fk6jh91b39881ius3rctgml9tt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0d4u352g5G_Uu7hxeZtdSE6nqMEg8zWo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "846826250516-c7pvu8fk6jh91b39881ius3rctgml9tt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
