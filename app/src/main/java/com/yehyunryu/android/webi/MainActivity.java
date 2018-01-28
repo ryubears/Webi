@@ -27,6 +27,11 @@ import android.widget.TextView;
 import com.facebook.AccessToken;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.makeramen.roundedimageview.RoundedTransformationBuilder;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
@@ -48,8 +53,12 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mPreferencesEditor;
     private AccessToken mAccessToken;
+    private Profile mProfile;
     private ActionBarDrawerToggle mDrawerToggle;
     private ChatAdapter mChatAdapter;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mCurrentUrlReference;
+    private ChildEventListener mChildEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         mChatButton = (ImageButton) findViewById(R.id.main_chat_button);
         mWebView = (WebView) findViewById(R.id.main_webview);
         mChatRecyclerView = (RecyclerView) findViewById(R.id.main_chat_recyclerview);
+        mChatEditText = (EditText) findViewById(R.id.main_chat_edittext);
         mSendButton = (ImageButton) findViewById(R.id.main_send_button);
 
         mSharedPreferences = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
@@ -82,9 +92,9 @@ public class MainActivity extends AppCompatActivity {
                     displayProfilePicture(currentProfile);
                 }
             };
-            Profile profile = Profile.getCurrentProfile();
-            if(profile != null) {
-                displayProfilePicture(profile);
+            mProfile = Profile.getCurrentProfile();
+            if(mProfile != null) {
+                displayProfilePicture(mProfile);
             } else {
                 Profile.fetchProfileForCurrentAccessToken();
             }
@@ -117,6 +127,63 @@ public class MainActivity extends AppCompatActivity {
         String url = getSharedPreferences(getPackageName(), Context.MODE_PRIVATE).getString(SAVED_URL_KEY, "https://google.com/");
         mWebView.loadUrl(url);
 
+        mChatAdapter = new ChatAdapter(this, new ArrayList<ChatMessage>());
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        layoutManager.setStackFromEnd(true);
+        mChatRecyclerView.setAdapter(mChatAdapter);
+        mChatRecyclerView.setLayoutManager(layoutManager);
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                ChatMessage chatMessage = dataSnapshot.getValue(ChatMessage.class);
+                mChatAdapter.add(chatMessage);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        };
+
+        mSendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String text = mChatEditText.getText().toString();
+                if(!text.isEmpty()) {
+                    long currentTime = System.currentTimeMillis();
+                    String userId = mAccessToken.getUserId();
+                    String name = mProfile.getName();
+                    String profileUrl = mProfile.getProfilePictureUri(200,200).toString();
+                    ChatMessage chatMessage = new ChatMessage(currentTime, userId, name, text, profileUrl);
+                    mCurrentUrlReference.push().setValue(chatMessage);
+                }
+                mChatEditText.setText("");
+                mChatEditText.clearFocus();
+                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mChatEditText.getWindowToken(), 0);
+                mChatRecyclerView.requestFocus();
+            }
+        });
+
+        mChatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
+                    mDrawerLayout.closeDrawer(GravityCompat.END);
+                } else {
+                    mDrawerLayout.openDrawer(GravityCompat.END);
+                }
+            }
+        });
+
         //load webview with input
         mUrlEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -145,6 +212,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 }
+                mChatAdapter.clear();
+                if(mCurrentUrlReference != null) mCurrentUrlReference.removeEventListener(mChildEventListener);
                 //hides keyboard after user searches
                 mUrlEditText.clearFocus();
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mUrlEditText.getWindowToken(), 0);
@@ -153,27 +222,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mChatButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mDrawerLayout.isDrawerOpen(GravityCompat.END)) {
-                    mDrawerLayout.closeDrawer(GravityCompat.END);
-                } else {
-                    mDrawerLayout.openDrawer(GravityCompat.END);
-                }
-            }
-        });
 
-
-        ArrayList<ChatMessage> chatMessages = new ArrayList<>();
-        chatMessages.add(new ChatMessage(0, 0, null, "Random stuff", null));
-        chatMessages.add(new ChatMessage(0, 0, null, "lol", null));
-        chatMessages.add(new ChatMessage(0, 0, null, "once upon a time in a galaxy far far away", null));
-        mChatAdapter = new ChatAdapter(this, chatMessages);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
-        layoutManager.setStackFromEnd(true);
-        mChatRecyclerView.setAdapter(mChatAdapter);
-        mChatRecyclerView.setLayoutManager(layoutManager);
     }
 
     private void displayProfilePicture(Profile profile) {
@@ -210,6 +259,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             mPreferencesEditor.putString(SAVED_URL_KEY, view.getUrl()).apply();
+            String webUrl = mWebView.getUrl();
+            if(webUrl.charAt(webUrl.length() - 1) == '/') webUrl = webUrl.substring(0, webUrl.length() - 1);
+            webUrl = webUrl.replace("https://", "");
+            webUrl = webUrl.replace("http://", "");
+            webUrl = webUrl.replace(".", "_");
+            webUrl = webUrl.replace("/", "`");
+            mCurrentUrlReference = mFirebaseDatabase.getReference().child("urls").child(webUrl);
+            mCurrentUrlReference.addChildEventListener(mChildEventListener);
             super.onPageFinished(view, url);
         }
     }

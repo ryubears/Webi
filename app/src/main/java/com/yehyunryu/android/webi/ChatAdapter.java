@@ -42,6 +42,15 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
         holder.bind(position);
     }
 
+    public void clear() {
+        mMessages.clear();
+    }
+
+    public void add(ChatMessage chatMessage) {
+        mMessages.add(chatMessage);
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getItemCount() {
         if(mMessages == null) return 0;
@@ -67,7 +76,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
         private void displayProfilePicture(String profileUrl) {
             Transformation profilePicTransformation = new RoundedTransformationBuilder()
-                    .cornerRadius(40)
+                    .cornerRadius(100)
                     .oval(false)
                     .build();
             Picasso.with(itemView.getContext())

@@ -6,12 +6,14 @@ package com.yehyunryu.android.webi;
 
 public class ChatMessage {
     private long timeStamp;
-    private long userId;
+    private String userId;
     private String name;
     private String text;
     private String profile;
 
-    public ChatMessage(long timeStamp, long userId, String name, String text, String profile) {
+    public ChatMessage() {}
+
+    public ChatMessage(long timeStamp, String userId, String name, String text, String profile) {
         this.timeStamp = timeStamp;
         this.userId = userId;
         this.name = name;
@@ -23,7 +25,7 @@ public class ChatMessage {
         return timeStamp;
     }
 
-    public long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
