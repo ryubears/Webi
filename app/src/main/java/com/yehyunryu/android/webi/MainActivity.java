@@ -11,6 +11,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -277,6 +278,8 @@ public class MainActivity extends AppCompatActivity {
         mCurrentUrl = mCurrentUrl.replace("http://", "");
         mCurrentUrl = mCurrentUrl.replace(".", "_");
         mCurrentUrl = mCurrentUrl.replace("/", "`");
+        mCurrentUrl = mCurrentUrl.replace("#", "*");
+        Log.d("MainActivity", mCurrentUrl);
         mCurrentUrlReference = mFirebaseDatabase.getReference().child("urls").child(mCurrentUrl);
         mCurrentUrlReference.addChildEventListener(mChildEventListener);
     }
