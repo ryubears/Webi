@@ -24,6 +24,7 @@ public class ProfileDialog {
     private ImageView mProfilePicture;
     private TextView mProfileName;
     private TextView mLogOutTextView;
+    private TextView mCloseTextView;
 
     public void showDialog(final Activity activity, Profile profile, final LoginManager loginManager, final FirebaseAuth firebaseAuth) {
         final Dialog dialog = new Dialog(activity);
@@ -34,6 +35,7 @@ public class ProfileDialog {
         mProfilePicture = (ImageView) dialog.findViewById(R.id.profile_picture);
         mProfileName = (TextView) dialog.findViewById(R.id.profile_name);
         mLogOutTextView = (TextView) dialog.findViewById(R.id.profile_logout);
+        mCloseTextView = (TextView) dialog.findViewById(R.id.profile_close);
 
         mProfileName.setText(profile.getName());
 
@@ -51,6 +53,13 @@ public class ProfileDialog {
                 activity.finish();
                 firebaseAuth.signOut();
                 loginManager.logOut();
+            }
+        });
+
+        mCloseTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
             }
         });
 

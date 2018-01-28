@@ -8,4 +8,5 @@
     <string name="chat_drawer_close">Close chat drawer</string>
 
     <string name="logout">Log Out</string>
+    <string name="close">Close</string>
 </resources>
