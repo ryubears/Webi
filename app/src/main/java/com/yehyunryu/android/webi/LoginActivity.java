@@ -39,6 +39,14 @@ import com.google.firebase.auth.FirebaseUser;
  limitations under the License.
  */
 
+/*
+ App Icon(Wave): Made by Freepik(http://www.freepik.com) from Flaticon(www.flaticon.com). This icon is licensed by Creative Commons BY 3.0(http://creativecommons.org/licenses/by/3.0).
+ User Icon: Made by Smashicons(https://www.flaticon.com/authors/smashicons) from Flaticon(www.flaticon.com). This icon is licensed by Creative Commons BY 3.0(http://creativecommons.org/licenses/by/3.0).
+ Chat Icon: Made by Google(https://material.io/icons/#ic_chat).
+ Send Icon: Made by Google(https://material.io/icons/#ic_send).
+ Report Icon: Made by Google(https://material.io/icons/#ic_report).
+*/
+
 public class LoginActivity extends AppCompatActivity {
     private static final String LOG_TAG = LoginActivity.class.getSimpleName();
 
