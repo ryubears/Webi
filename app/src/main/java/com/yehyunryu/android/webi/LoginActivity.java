@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -25,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final String LOG_TAG = LoginActivity.class.getSimpleName();
 
     private LoginButton mLoginButton;
+    private ProgressBar mLoadingButton;
 
     private CallbackManager mCallbackManager;
 
@@ -36,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mLoginButton = (LoginButton) findViewById(R.id.login_facebook);
+        mLoadingButton = (ProgressBar) findViewById(R.id.login_progress_bar);
 
         mCallbackManager = CallbackManager.Factory.create();
 
@@ -52,12 +56,16 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onCancel() {
                 Log.d(LOG_TAG, "Facebook Login: Canceled");
+                mLoadingButton.setVisibility(View.GONE);
+                mLoginButton.setEnabled(true);
             }
 
             @Override
             public void onError(FacebookException error) {
                 Log.e(LOG_TAG, "Facebook Login: " + error.toString());
                 Toast.makeText(LoginActivity.this, "Login Failed", Toast.LENGTH_SHORT).show();
+                mLoadingButton.setVisibility(View.GONE);
+                mLoginButton.setEnabled(true);
             }
         });
     }
@@ -67,6 +75,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void handleFacebookAccessToken(AccessToken token) {
+        mLoginButton.setEnabled(false);
+        mLoadingButton.setVisibility(View.VISIBLE);
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
         mFirebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -80,6 +90,8 @@ public class LoginActivity extends AppCompatActivity {
                             Log.e(LOG_TAG, "Firebase Auth: signInWithCredential failure: ", task.getException());
                             Toast.makeText(LoginActivity.this, "Authentication Failed", Toast.LENGTH_SHORT).show();
                         }
+                        mLoadingButton.setVisibility(View.GONE);
+                        mLoginButton.setEnabled(true);
                     }
                 });
     }
